@@ -1,11 +1,12 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { BarChart3, Boxes, Building2, ChefHat, ChevronLeft, ChevronRight, ClipboardList, Coffee, CreditCard, Factory, FileBarChart, Landmark, LogOut, Menu, PackageSearch, Receipt, Settings, ShoppingCart, Store, Users, WalletCards } from 'lucide-react'
+import { BarChart3, Boxes, ChefHat, ChevronLeft, ChevronRight, ClipboardList, Coffee, CreditCard, Factory, FileBarChart, Landmark, LogOut, Menu, PackageSearch, Settings, ShoppingCart, Store, Truck, Users, WalletCards } from 'lucide-react'
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 const items = [
   ['/', 'Visão Geral', BarChart3],
   ['/insumos', 'Insumos', Boxes],
+  ['/fornecedores', 'Fornecedores', Truck],
   ['/compras', 'Compras', ShoppingCart],
   ['/estoque', 'Estoque', PackageSearch],
   ['/receitas', 'Receitas', ChefHat],
