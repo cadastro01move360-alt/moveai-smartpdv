@@ -128,7 +128,7 @@ function PresentationModal({ingredient,units,suppliers,organizationId,saving,set
     <Field label="Marca"><input value={brand} onChange={e=>setBrand(e.target.value)} placeholder="Opcional"/></Field>
     <Field label="Fornecedor preferencial"><select value={supplierId} onChange={e=>setSupplierId(e.target.value)}><option value="">Sem preferência</option>{suppliers.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></Field>
     <Field label="Unidade de compra"><select value={purchaseUnitId} onChange={e=>setPurchaseUnitId(e.target.value)} required>{units.map(u=><option key={u.id} value={u.id}>{u.name} ({u.symbol})</option>)}</select></Field>
-    <Field label={`Quantidade contida em ${baseUnit?.symbol||'un'}`} hint={`Ex.: pacote de 5 kg com unidade-base g = 5000 ${baseUnit?.symbol||''}`}><input type="number" min="0.000001" step="0.001" value={baseQty} onChange={e=>setBaseQty(e.target.value)} required/></Field>
+    <Field label={`Quantidade contida em ${baseUnit?.symbol||'un'}`} hint={`Ex.: pacote de 5 kg com unidade-base g = 5000 ${baseUnit?.symbol||''}`}><input type="number" min="0.000001" step="any" value={baseQty} onChange={e=>setBaseQty(e.target.value)} required/></Field>
     <ErrorBanner message={error}/><FormActions><button type="button" className="secondary" onClick={onClose}>Cancelar</button><button className="primary" disabled={saving}>{saving?'Salvando…':'Salvar apresentação'}</button></FormActions>
   </form></Modal>
 }
