@@ -104,7 +104,7 @@ function NewIngredientModal({units,organizationId,saving,setSaving,onClose,onSav
     <Field label="Nome"><input value={name} onChange={e=>setName(e.target.value)} placeholder="Ex.: Farinha de trigo" required/></Field>
     <Field label="Categoria"><input value={category} onChange={e=>setCategory(e.target.value)} placeholder="Ex.: Farinhas"/></Field>
     <Field label="Unidade-base"><select value={unitId} onChange={e=>setUnitId(e.target.value)} required><option value="">Selecione</option>{units.map(u=><option key={u.id} value={u.id}>{u.name} ({u.symbol})</option>)}</select></Field>
-    <Field label="Estoque mínimo"><input type="number" min="0" step="0.001" value={minimum} onChange={e=>setMinimum(e.target.value)}/></Field>
+    <Field label="Estoque mínimo"><input type="number" min="0" step="any" value={minimum} onChange={e=>setMinimum(e.target.value)}/></Field>
     <label className="check-field"><input type="checkbox" checked={expiry} onChange={e=>setExpiry(e.target.checked)}/><span>Controlar validade deste insumo</span></label>
     <ErrorBanner message={error}/><FormActions><button type="button" className="secondary" onClick={onClose}>Cancelar</button><button className="primary" disabled={saving}>{saving?'Salvando…':'Salvar insumo'}</button></FormActions>
   </form></Modal>
@@ -128,7 +128,7 @@ function PresentationModal({ingredient,units,suppliers,organizationId,saving,set
     <Field label="Marca"><input value={brand} onChange={e=>setBrand(e.target.value)} placeholder="Opcional"/></Field>
     <Field label="Fornecedor preferencial"><select value={supplierId} onChange={e=>setSupplierId(e.target.value)}><option value="">Sem preferência</option>{suppliers.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></Field>
     <Field label="Unidade de compra"><select value={purchaseUnitId} onChange={e=>setPurchaseUnitId(e.target.value)} required>{units.map(u=><option key={u.id} value={u.id}>{u.name} ({u.symbol})</option>)}</select></Field>
-    <Field label={`Quantidade contida em ${baseUnit?.symbol||'un'}`} hint={`Ex.: pacote de 5 kg com unidade-base g = 5000 ${baseUnit?.symbol||''}`}><input type="number" min="0.000001" step="any" value={baseQty} onChange={e=>setBaseQty(e.target.value)} required/></Field>
+    <Field label={`Quantidade contida em ${baseUnit?.symbol||'un'}`} hint={`Ex.: pacote de 5 kg com unidade-base g = 5000 ${baseUnit?.symbol||''}`}><input type="number" min="0" step="any" value={baseQty} onChange={e=>setBaseQty(e.target.value)} required/></Field>
     <ErrorBanner message={error}/><FormActions><button type="button" className="secondary" onClick={onClose}>Cancelar</button><button className="primary" disabled={saving}>{saving?'Salvando…':'Salvar apresentação'}</button></FormActions>
   </form></Modal>
 }
