@@ -62,3 +62,14 @@ https://smartpdv.movemkt.com.br
 - Valores financeiros e quantidades continuam em `NUMERIC`.
 - Views usam `security_invoker=true` e respeitam RLS das tabelas-base.
 - Nunca coloque `service_role` ou `sb_secret_...` no frontend.
+
+## V4 — Receitas / Fichas Técnicas
+
+A migration `003_recipes_costing.sql` adiciona:
+- cálculo de custo de receita pelo custo médio atual do estoque;
+- perda percentual por insumo;
+- custo total e custo por rendimento;
+- criação da versão 1 e novas versões auditáveis;
+- status rascunho/ativa/arquivada.
+
+Execute a migration 003 no Supabase antes de publicar esta versão.

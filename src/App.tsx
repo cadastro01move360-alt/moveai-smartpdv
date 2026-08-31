@@ -9,9 +9,9 @@ import Ingredients from './pages/Ingredients'
 import Suppliers from './pages/Suppliers'
 import Purchases from './pages/Purchases'
 import Stock from './pages/Stock'
+import Recipes from './pages/Recipes'
 
 const modules = [
-  ['/receitas','Receitas','Crie fichas técnicas versionadas, sub-receitas e custos padrão.','Nova receita'],
   ['/producao','Produção','Planeje e execute ordens com consumo real por lote.','Nova ordem'],
   ['/produtos','Produtos','Gerencie produtos, variantes, adicionais, embalagens e preços.','Novo produto'],
   ['/encomendas','Encomendas','Organize pedidos futuros, sinais, saldo e entrega.','Nova encomenda'],
@@ -32,6 +32,7 @@ export default function App(){
       <Route path="/fornecedores" element={<Suppliers/>}/>
       <Route path="/compras" element={<Purchases/>}/>
       <Route path="/estoque" element={<Stock/>}/>
+      <Route path="/receitas" element={<Recipes/>}/>
       <Route path="/pdv" element={<PDV/>}/>
       {modules.map(([path,title,description,cta]) => <Route key={path} path={path} element={<ModulePage title={title} description={description} cta={cta}/>}/>) }
     </Route>

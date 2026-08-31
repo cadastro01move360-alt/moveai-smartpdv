@@ -1,5 +1,8 @@
 export const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
 export const numberBR = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 3 })
+export const unitCostBR = (value:number) => new Intl.NumberFormat('pt-BR', {
+  style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 6
+}).format(Number.isFinite(value) ? value : 0)
 
 export const dateBR = (value?: string | null) => {
   if (!value) return '—'

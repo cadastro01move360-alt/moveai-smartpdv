@@ -76,7 +76,7 @@ export default function Ingredients(){
             <td>{i.category || '—'}</td>
             <td>{numberBR.format(balance)} {unit}</td>
             <td>{numberBR.format(min)} {unit}</td>
-            <td>{brl.format(Number(s?.average_cost??0))}/{unit || 'un'}</td>
+            <td>{unitCostBR(Number(s?.average_cost??0))}/{unit || 'un'}</td>
             <td>{presentationCount.get(i.id)??0}</td>
             <td>{balance<=min ? <Badge tone="warning">Repor</Badge> : <Badge tone="success">OK</Badge>}</td>
             <td><button className="table-action" onClick={()=>setPresentationIngredient(i)}><PackagePlus size={15}/> Apresentação</button></td>
@@ -93,18 +93,15 @@ function NewIngredientModal({units,organizationId,saving,setSaving,onClose,onSav
   const [name,setName]=useState(''); const [category,setCategory]=useState(''); const [unitId,setUnitId]=useState(units[0]?.id??''); const [minimum,setMinimum]=useState('0'); const [expiry,setExpiry]=useState(false); const [error,setError]=useState('')
   async function submit(e:FormEvent){
     e.preventDefault(); if(!supabase)return; setSaving(true);setError('')
-    const {data,error:insertError}=await supabase.from('ingredient_bases').insert({organization_id:organizationId,name:name.trim(),category:category.trim()||null,base_unit_id:unitId,minimum_stock:Number(minimum||0),controls_expiry:expiry}).select('id').single()
+    const {error:insertError}=await supabase.from('ingredient_bases').insert({organization_id:organizationId,name:name.trim(),category:category.trim()||null,base_unit_id:unitId,minimum_stock:Number(minimum||0),controls_expiry:expiry})
     if(insertError){setError(insertError.message);setSaving(false);return}
-    const unit=units.find(u=>u.id===unitId)
-    const {error:pError}=await supabase.from('ingredient_presentations').insert({organization_id:organizationId,ingredient_base_id:data.id,purchase_unit_id:unitId,base_quantity:1,label:`Compra em ${unit?.symbol||'un'}`})
-    if(pError){setError(`Insumo criado, mas a apresentação padrão falhou: ${pError.message}`);setSaving(false);return}
     setSaving(false);onSaved()
   }
   return <Modal title="Novo insumo" onClose={onClose}><form onSubmit={submit} className="form-grid">
     <Field label="Nome"><input value={name} onChange={e=>setName(e.target.value)} placeholder="Ex.: Farinha de trigo" required/></Field>
     <Field label="Categoria"><input value={category} onChange={e=>setCategory(e.target.value)} placeholder="Ex.: Farinhas"/></Field>
     <Field label="Unidade-base"><select value={unitId} onChange={e=>setUnitId(e.target.value)} required><option value="">Selecione</option>{units.map(u=><option key={u.id} value={u.id}>{u.name} ({u.symbol})</option>)}</select></Field>
-    <Field label="Estoque mínimo"><input type="number" min="0" step="any" value={minimum} onChange={e=>setMinimum(e.target.value)}/></Field>
+    <Field label="Estoque mínimo"><input type="number" min="0" step="0.001" value={minimum} onChange={e=>setMinimum(e.target.value)}/></Field>
     <label className="check-field"><input type="checkbox" checked={expiry} onChange={e=>setExpiry(e.target.checked)}/><span>Controlar validade deste insumo</span></label>
     <ErrorBanner message={error}/><FormActions><button type="button" className="secondary" onClick={onClose}>Cancelar</button><button className="primary" disabled={saving}>{saving?'Salvando…':'Salvar insumo'}</button></FormActions>
   </form></Modal>
@@ -128,7 +125,7 @@ function PresentationModal({ingredient,units,suppliers,organizationId,saving,set
     <Field label="Marca"><input value={brand} onChange={e=>setBrand(e.target.value)} placeholder="Opcional"/></Field>
     <Field label="Fornecedor preferencial"><select value={supplierId} onChange={e=>setSupplierId(e.target.value)}><option value="">Sem preferência</option>{suppliers.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></Field>
     <Field label="Unidade de compra"><select value={purchaseUnitId} onChange={e=>setPurchaseUnitId(e.target.value)} required>{units.map(u=><option key={u.id} value={u.id}>{u.name} ({u.symbol})</option>)}</select></Field>
-    <Field label={`Quantidade contida em ${baseUnit?.symbol||'un'}`} hint={`Ex.: pacote de 5 kg com unidade-base g = 5000 ${baseUnit?.symbol||''}`}><input type="number" min="0" step="any" value={baseQty} onChange={e=>setBaseQty(e.target.value)} required/></Field>
+    <Field label={`Quantidade contida em ${baseUnit?.symbol||'un'}`} hint={`Ex.: pacote de 5 kg com unidade-base g = 5000 ${baseUnit?.symbol||''}`}><input type="number" min="0.000001" step="any" value={baseQty} onChange={e=>setBaseQty(e.target.value)} required/></Field>
     <ErrorBanner message={error}/><FormActions><button type="button" className="secondary" onClick={onClose}>Cancelar</button><button className="primary" disabled={saving}>{saving?'Salvando…':'Salvar apresentação'}</button></FormActions>
   </form></Modal>
 }

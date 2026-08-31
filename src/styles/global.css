@@ -166,3 +166,14 @@ a{color:inherit}
 .purchase-total{display:flex;justify-content:flex-end;align-items:center;gap:12px;padding:10px 0}.purchase-total span{color:var(--muted);font-size:12px}.purchase-total strong{font-size:22px;color:var(--ink)}
 .confirm-note{display:flex;gap:12px;border-radius:12px;background:#EAF6F0;border:1px solid #CDE8DB;padding:13px;color:#21684C}.confirm-note.warning{background:#FFF5E5;border-color:#F4D59D;color:#7A531C}.confirm-note svg{flex:none;margin-top:2px}.confirm-note strong{display:block}.confirm-note p{margin:4px 0 0;font-size:12px;line-height:1.45}
 @media(max-width:900px){.setup-card{grid-template-columns:1fr}.form-grid.two-cols{grid-template-columns:1fr}.purchase-row{grid-template-columns:1fr 1fr}.purchase-row-index{display:none}.conversion-box{align-self:end}.modal-backdrop{padding:10px}}
+
+/* Fichas técnicas v4 */
+.cost-display{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#FAFAFB;display:grid;gap:3px;min-height:62px;align-content:center}
+.cost-display strong{font-size:18px;color:var(--ink)}.cost-display span{font-size:11px;color:var(--muted)}
+.recipe-items{border:1px solid var(--line);border-radius:14px;padding:14px;background:#FAFAFB}
+.recipe-item-row{display:grid;grid-template-columns:30px minmax(220px,2fr) 130px 100px 150px 150px 34px;gap:8px;align-items:end;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:8px}
+.recipe-item-row .field{gap:4px}.recipe-item-row .field>span{font-size:10.5px}.recipe-item-row .field input,.recipe-item-row .field select{padding:8px;font-size:12px}
+.recipe-row-index{align-self:center;font-weight:850;color:var(--brand);text-align:center}
+.recipe-cost-box{border-radius:9px;background:#F5F6F8;padding:7px 8px;display:grid;gap:2px;min-height:58px;align-content:center}.recipe-cost-box span,.recipe-cost-box small{font-size:10px;color:var(--muted)}.recipe-cost-box strong{font-size:12px;color:var(--ink)}
+@media(max-width:1050px){.recipe-item-row{grid-template-columns:30px 2fr 1fr 1fr}.recipe-cost-box{grid-column:span 2}.recipe-item-row .danger-icon{grid-column:4}}
+@media(max-width:700px){.recipe-item-row{grid-template-columns:1fr}.recipe-row-index{display:none}.recipe-cost-box,.recipe-item-row .danger-icon{grid-column:auto}}
