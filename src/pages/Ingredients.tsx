@@ -3,7 +3,7 @@ import { Boxes, PackagePlus, Plus } from 'lucide-react'
 import { Badge, PageHeader, StatCard } from '../components/UI'
 import { DataTable, ErrorBanner, Field, FormActions, LoadingPanel, Modal, OrganizationSetup } from '../components/OperationalUI'
 import { supabase } from '../lib/supabase'
-import { numberBR, brl } from '../lib/format'
+import { numberBR, brl, unitCostBR } from '../lib/format'
 import { useOrganization } from '../lib/useOrganization'
 
 type Ingredient = { id:string; name:string; category:string|null; base_unit_id:string; minimum_stock:number; controls_expiry:boolean; active:boolean }
