@@ -84,3 +84,9 @@ Domínio atual:
 ```text
 https://smartpdv.movemkt.com.br
 ```
+
+## V7 — Vendas / PDV
+
+A V7 conecta o PDV ao catálogo real de produtos acabados. A finalização da venda ocorre em uma função transacional no Supabase: grava pedido e itens, registra pagamento, baixa o estoque do produto acabado, congela preço/custo no item e calcula CMV e margem bruta.
+
+Migration incremental: `supabase/migrations/006_sales_pdv.sql`.
