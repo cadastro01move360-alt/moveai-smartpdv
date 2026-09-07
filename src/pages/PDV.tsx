@@ -118,7 +118,43 @@ function CheckoutModal({organizationId,locations,cart,total,onClose,onCompleted}
     const items=cart.map(i=>({product_id:i.product.product_id,quantity:i.quantity}))
     const {data,error:rpcError}=await supabase.rpc('finalize_pdv_sale',{p_organization_id:organizationId,p_stock_location_id:locationId,p_channel:channel,p_payment_method:method,p_items:items})
     if(rpcError){setError(rpcError.message);setSaving(false);return}
-    setSaving(false);onCompleted(data as SaleResult)
+
+    const raw:any=Array.isArray(data)?data[0]:data
+    let result:any=raw
+
+    if(typeof raw==='string'){
+      try{result=JSON.parse(raw)}catch{result=null}
+    }
+
+    const fallbackCmv=cart.reduce(
+      (sum,i)=>sum+Number(i.product.unit_cost)*i.quantity,
+      0
+    )
+
+    const saleTotal=Number(result?.total ?? result?.total_amount ?? total)
+    const saleCmv=Number(result?.cmv ?? result?.total_cost ?? fallbackCmv)
+    const saleGross=Number(
+      result?.gross_profit ??
+      result?.gross_profit_amount ??
+      (saleTotal-saleCmv)
+    )
+    const saleMargin=Number(
+      result?.gross_margin_percent ??
+      result?.margin_percent ??
+      (saleTotal>0 ? saleGross/saleTotal*100 : 0)
+    )
+
+    setSaving(false)
+
+    onCompleted({
+      order_id:String(result?.order_id ?? ''),
+      total:Number.isFinite(saleTotal)?saleTotal:total,
+      cmv:Number.isFinite(saleCmv)?saleCmv:fallbackCmv,
+      gross_profit:Number.isFinite(saleGross)?saleGross:total-fallbackCmv,
+      gross_margin_percent:Number.isFinite(saleMargin)
+        ?saleMargin
+        :(total>0?(total-fallbackCmv)/total*100:0)
+    })
   }
   return <Modal title="Receber venda" onClose={onClose}><div className="checkout-body"><div className="checkout-total"><span>Total a receber</span><strong>{brl.format(total)}</strong></div><label className="field"><span>Canal</span><select value={channel} onChange={e=>setChannel(e.target.value)}><option value="balcao">Balcão</option><option value="retirada">Retirada</option><option value="encomenda">Encomenda</option></select></label><label className="field"><span>Local de estoque</span><select value={locationId} onChange={e=>setLocationId(e.target.value)}>{locations.map(l=><option key={l.id} value={l.id}>{l.name}</option>)}</select></label><label className="field"><span>Forma de pagamento</span><select value={method} onChange={e=>setMethod(e.target.value)}><option value="dinheiro">Dinheiro</option><option value="pix">PIX</option><option value="debito">Cartão de débito</option><option value="credito">Cartão de crédito</option><option value="outro">Outro</option></select></label><ErrorBanner message={error}/><div className="form-actions"><button className="secondary" onClick={onClose} disabled={saving}>Cancelar</button><button className="primary" onClick={finish} disabled={saving}>{saving?'Finalizando…':`Confirmar ${brl.format(total)}`}</button></div></div></Modal>
 }
