@@ -13,12 +13,12 @@ import Recipes from './pages/Recipes'
 import Production from './pages/Production'
 import Products from './pages/Products'
 import Finance from './pages/Finance'
+import Reports from './pages/Reports'
 import Cash from './pages/Cash'
 import Banks from './pages/Banks'
 
 const modules = [
   ['/encomendas','Encomendas','Organize pedidos futuros, sinais, saldo e entrega.','Nova encomenda'],
-  ['/relatorios','Relatórios','DRE, CMV, margens, perdas e indicadores gerenciais.','Exportar'],
   ['/usuarios','Usuários','Gerencie membros, papéis, permissões e acesso por organização.','Novo usuário'],
   ['/configuracoes','Configurações','Preferências da organização, unidades e regras operacionais.','Editar configurações'],
 ] as const
@@ -39,6 +39,7 @@ export default function App(){
         <Route path="/caixa" element={<Cash/>}/>
         <Route path="/bancos" element={<Banks/>}/>
       <Route path="/financeiro" element={<Finance/>}/>
+      <Route path="/relatorios" element={<Reports/>}/>
       {modules.map(([path,title,description,cta]) => <Route key={path} path={path} element={<ModulePage title={title} description={description} cta={cta}/>}/>) }
     </Route>
     <Route path="*" element={<Navigate to="/" replace/>}/>
