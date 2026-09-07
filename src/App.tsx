@@ -12,10 +12,10 @@ import Stock from './pages/Stock'
 import Recipes from './pages/Recipes'
 import Production from './pages/Production'
 import Products from './pages/Products'
+import Cash from './pages/Cash'
 
 const modules = [
   ['/encomendas','Encomendas','Organize pedidos futuros, sinais, saldo e entrega.','Nova encomenda'],
-  ['/caixa','Caixa','Abra sessões, registre sangrias e confira fechamento.','Abrir caixa'],
   ['/bancos','Bancos','Controle contas financeiras, transferências e conciliação.','Nova conta'],
   ['/financeiro','Financeiro','Contas a pagar/receber, recorrências e fluxo de caixa.','Novo lançamento'],
   ['/relatorios','Relatórios','DRE, CMV, margens, perdas e indicadores gerenciais.','Exportar'],
@@ -36,6 +36,7 @@ export default function App(){
       <Route path="/producao" element={<Production/>}/>
       <Route path="/produtos" element={<Products/>}/>
       <Route path="/pdv" element={<PDV/>}/>
+        <Route path="/caixa" element={<Cash/>}/>
       {modules.map(([path,title,description,cta]) => <Route key={path} path={path} element={<ModulePage title={title} description={description} cta={cta}/>}/>) }
     </Route>
     <Route path="*" element={<Navigate to="/" replace/>}/>
