@@ -11,9 +11,9 @@ import Purchases from './pages/Purchases'
 import Stock from './pages/Stock'
 import Recipes from './pages/Recipes'
 import Production from './pages/Production'
+import Products from './pages/Products'
 
 const modules = [
-  ['/produtos','Produtos','Gerencie produtos, variantes, adicionais, embalagens e preços.','Novo produto'],
   ['/encomendas','Encomendas','Organize pedidos futuros, sinais, saldo e entrega.','Nova encomenda'],
   ['/caixa','Caixa','Abra sessões, registre sangrias e confira fechamento.','Abrir caixa'],
   ['/bancos','Bancos','Controle contas financeiras, transferências e conciliação.','Nova conta'],
@@ -34,6 +34,7 @@ export default function App(){
       <Route path="/estoque" element={<Stock/>}/>
       <Route path="/receitas" element={<Recipes/>}/>
       <Route path="/producao" element={<Production/>}/>
+      <Route path="/produtos" element={<Products/>}/>
       <Route path="/pdv" element={<PDV/>}/>
       {modules.map(([path,title,description,cta]) => <Route key={path} path={path} element={<ModulePage title={title} description={description} cta={cta}/>}/>) }
     </Route>
