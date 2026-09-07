@@ -168,7 +168,7 @@ export default function Banks(){
   )
 
   const totalBalance=useMemo(
-    ()=>accounts.filter(a=>a.active).reduce((s,a)=>s+n(a.current_balance),0),
+    ()=>accounts.filter(a=>a.active&&a.account_type!=='caixa').reduce((s,a)=>s+n(a.current_balance),0),
     [accounts]
   )
   const bankBalance=useMemo(
@@ -220,7 +220,7 @@ export default function Banks(){
   }
 
   function startMovement(accountId?:string){
-    setMovementAccountId(accountId||accounts.find(a=>a.active)?.account_id||'')
+    setMovementAccountId(accountId||accounts.find(a=>a.active&&a.account_type!=='caixa')?.account_id||'')
     setMovementDirection('entrada')
     setMovementAmount('')
     setMovementCategory('ajuste')
@@ -254,7 +254,7 @@ export default function Banks(){
   }
 
   function startTransfer(){
-    const active=accounts.filter(a=>a.active)
+    const active=accounts.filter(a=>a.active&&a.account_type!=='caixa')
     setSourceAccountId(active[0]?.account_id||'')
     setDestinationAccountId(active[1]?.account_id||'')
     setTransferAmount('')
@@ -354,8 +354,8 @@ export default function Banks(){
       </div>
       <div className="stat-card">
         <small>Contas ativas</small>
-        <strong>{accounts.filter(a=>a.active).length}</strong>
-        <span>Inclui caixa físico.</span>
+        <strong>{accounts.filter(a=>a.active&&a.account_type!=='caixa').length}</strong>
+        <span>Bancos e adquirentes.</span>
       </div>
     </div>
 
@@ -363,11 +363,11 @@ export default function Banks(){
       <div className="section-head">
         <div>
           <strong>Contas financeiras</strong>
-          <p className="cell-helper">Caixa, bancos e adquirentes com saldo calculado pelo livro financeiro.</p>
+          <p className="cell-helper">Bancos e adquirentes com saldo calculado pelo livro financeiro.</p>
         </div>
         <div className="form-actions" style={{margin:0}}>
           <button className="secondary" onClick={()=>setMappingModal(true)}>Regras do PDV</button>
-          <button className="secondary" onClick={startTransfer} disabled={accounts.filter(a=>a.active).length<2}>Transferir</button>
+          <button className="secondary" onClick={startTransfer} disabled={accounts.filter(a=>a.active&&a.account_type!=='caixa').length<2}>Transferir</button>
           <button className="secondary" onClick={()=>startMovement()}>Movimentar</button>
           <button className="primary" onClick={()=>setAccountModal(true)}>+ Nova conta</button>
           <button className="secondary" onClick={()=>void load()}>Atualizar</button>
@@ -377,7 +377,7 @@ export default function Banks(){
       {loading?<LoadingPanel text="Carregando contas..."/>:
         accounts.length===0?<div className="panel-empty">Nenhuma conta financeira cadastrada.</div>:
         <DataTable headers={['Conta','Tipo','Instituição','Identificação','Saldo inicial','Saldo atual','Ações']}>
-          {accounts.map(a=><tr key={a.account_id}>
+          {accounts.filter(a=>a.active&&a.account_type!=='caixa').map(a=><tr key={a.account_id}>
             <td><strong>{a.name}</strong>{a.pix_key&&<small className="cell-helper">PIX: {a.pix_key}</small>}</td>
             <td>{accountType(a.account_type)}</td>
             <td>{a.institution_name||'—'}</td>
@@ -416,9 +416,9 @@ export default function Banks(){
           <p className="cell-helper">Últimos 100 lançamentos das contas da organização.</p>
         </div>
       </div>
-      {transactions.length===0?<div className="panel-empty">Nenhum lançamento financeiro registrado.</div>:
+      {transactions.filter(t=>accountMap[t.account_id]?.account_type!=='caixa').length===0?<div className="panel-empty">Nenhum lançamento financeiro registrado.</div>:
         <DataTable headers={['Data','Conta','Tipo','Categoria','Descrição','Valor']}>
-          {transactions.map(t=><tr key={t.id}>
+          {transactions.filter(t=>accountMap[t.account_id]?.account_type!=='caixa').map(t=><tr key={t.id}>
             <td>{dt(t.occurred_at)}</td>
             <td>{accountMap[t.account_id]?.name||'Conta'}</td>
             <td>{t.direction==='entrada'?'Entrada':'Saída'}</td>
@@ -471,7 +471,7 @@ export default function Banks(){
         <Field label="Conta">
           <select value={movementAccountId} onChange={e=>setMovementAccountId(e.target.value)} required>
             <option value="">Selecione</option>
-            {accounts.filter(a=>a.active).map(a=><option key={a.account_id} value={a.account_id}>{a.name}</option>)}
+            {accounts.filter(a=>a.active&&a.account_type!=='caixa').map(a=><option key={a.account_id} value={a.account_id}>{a.name}</option>)}
           </select>
         </Field>
         <Field label="Tipo">
@@ -501,13 +501,13 @@ export default function Banks(){
         <Field label="Conta de origem">
           <select value={sourceAccountId} onChange={e=>setSourceAccountId(e.target.value)} required>
             <option value="">Selecione</option>
-            {accounts.filter(a=>a.active).map(a=><option key={a.account_id} value={a.account_id}>{a.name} • {money(a.current_balance)}</option>)}
+            {accounts.filter(a=>a.active&&a.account_type!=='caixa').map(a=><option key={a.account_id} value={a.account_id}>{a.name} • {money(a.current_balance)}</option>)}
           </select>
         </Field>
         <Field label="Conta de destino">
           <select value={destinationAccountId} onChange={e=>setDestinationAccountId(e.target.value)} required>
             <option value="">Selecione</option>
-            {accounts.filter(a=>a.active).map(a=><option key={a.account_id} value={a.account_id}>{a.name}</option>)}
+            {accounts.filter(a=>a.active&&a.account_type!=='caixa').map(a=><option key={a.account_id} value={a.account_id}>{a.name}</option>)}
           </select>
         </Field>
         <Field label="Valor">
