@@ -1,31 +1,28 @@
 from pathlib import Path
-import re
 
-p=Path("src/App.tsx")
-s=p.read_text()
+p = Path("src/App.tsx")
+s = p.read_text()
 
-if "import Banks from './pages/Banks'" not in s:
-    marker="import Cash from './pages/Cash'"
-    if marker not in s:
-        marker="import Products from './pages/Products'"
-    if marker not in s:
-        raise SystemExit("Não encontrei um ponto seguro para inserir o import de Banks.")
-    s=s.replace(marker, marker+"\nimport Banks from './pages/Banks'")
+imp = "import Finance from './pages/Finance'\n"
+if imp not in s:
+    anchor = "import Products from './pages/Products'\n"
+    if anchor in s:
+        s = s.replace(anchor, anchor + imp)
+    else:
+        # fallback: insere antes de const modules
+        s = s.replace("const modules = [", imp + "\nconst modules = [")
 
-s=re.sub(
-    r"\n\s*\['/bancos','Bancos','Controle contas financeiras, transferências e conciliação\.','Nova conta'\],",
-    "",
-    s
-)
+# remove Financeiro do ModulePage genérico para evitar rota duplicada
+s = s.replace("  ['/financeiro','Financeiro','Contas a pagar/receber, recorrências e fluxo de caixa.','Novo lançamento'],\n", "")
 
-route='<Route path="/bancos" element={<Banks/>}/>'
-if route not in s:
-    marker='<Route path="/caixa" element={<Cash/>}/>'
-    if marker not in s:
-        marker='<Route path="/pdv" element={<PDV/>}/>'
-    if marker not in s:
-        raise SystemExit("Não encontrei uma rota segura para inserir /bancos.")
-    s=s.replace(marker, marker+"\n        "+route)
+route = '      <Route path="/financeiro" element={<Finance/>}/>\n'
+if 'path="/financeiro" element={<Finance' not in s:
+    anchor = '      <Route path="/bancos" element={<Banks/>}/>\n'
+    if anchor in s:
+        s = s.replace(anchor, anchor + route)
+    else:
+        anchor = '      <Route path="/pdv" element={<PDV/>}/>\n'
+        s = s.replace(anchor, anchor + route)
 
 p.write_text(s)
-print("App.tsx atualizado: /bancos agora usa Banks.tsx.")
+print("App.tsx atualizado: /financeiro agora usa Finance.tsx.")
