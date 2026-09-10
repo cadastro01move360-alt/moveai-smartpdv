@@ -16,7 +16,8 @@ import Finance from './pages/Finance'
 import Reports from './pages/Reports'
 import Cash from './pages/Cash'
 import Banks from './pages/Banks'
-
+import Users from './pages/Users'
+import Settings from './pages/Settings'
 const modules = [
   ['/encomendas','Encomendas','Organize pedidos futuros, sinais, saldo e entrega.','Nova encomenda'],
   ['/usuarios','Usuários','Gerencie membros, papéis, permissões e acesso por organização.','Novo usuário'],
@@ -40,6 +41,8 @@ export default function App(){
         <Route path="/bancos" element={<Banks/>}/>
       <Route path="/financeiro" element={<Finance/>}/>
       <Route path="/relatorios" element={<Reports/>}/>
+<Route path="/usuarios" element={<Users/>}/>
+<Route path="/configuracoes" element={<Settings/>}/>
       {modules.map(([path,title,description,cta]) => <Route key={path} path={path} element={<ModulePage title={title} description={description} cta={cta}/>}/>) }
     </Route>
     <Route path="*" element={<Navigate to="/" replace/>}/>
