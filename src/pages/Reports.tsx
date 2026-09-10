@@ -168,7 +168,7 @@ export default function Reports(){
       txRes,
       accountsRes
     ]=await Promise.all([
-      db.from('sales_order_summary')
+      db.from('report_sales_product_daily')
         .select('order_id,channel,status,total,cmv,gross_profit,gross_margin_percent,item_quantity,created_at,closed_at')
         .eq('organization_id',orgId)
         .eq('status','fechado')
