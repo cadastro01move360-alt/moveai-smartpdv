@@ -6,6 +6,13 @@ import {
   type FormEvent,
 } from "react"
 import {
+  Building2,
+  Plus,
+  RefreshCcw,
+  UserPlus,
+  X,
+} from "lucide-react"
+import {
   ErrorBanner,
   Field,
   FormActions,
@@ -41,6 +48,31 @@ type Subscription = {
   current_period_end: string | null
 }
 
+type BusinessProfile = {
+  organization_id: string
+  tax_id: string | null
+  phone: string | null
+  commercial_email: string | null
+}
+
+type NewClientForm = {
+  companyName: string
+  taxId: string
+  phone: string
+  commercialEmail: string
+  adminName: string
+  adminEmail: string
+  adminPassword: string
+  planId: string
+  status: string
+  dueDate: string
+  displayName: string
+  primaryColor: string
+  secondaryColor: string
+  accentColor: string
+  sidebarColor: string
+}
+
 const statuses = [
   ["pending", "Aguardando ativação"],
   ["trialing", "Teste"],
@@ -64,27 +96,96 @@ function toDateInput(value?: string | null) {
     .slice(0, 10)
 }
 
+function defaultDueDate() {
+  const date = new Date()
+  date.setMonth(date.getMonth() + 1)
+  return date.toISOString().slice(0, 10)
+}
+
+function generatePassword() {
+  const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ"
+  const lower = "abcdefghijkmnopqrstuvwxyz"
+  const numbers = "23456789"
+  const symbols = "!@#$%&*"
+  const all = upper + lower + numbers + symbols
+
+  let password =
+    upper[Math.floor(Math.random() * upper.length)] +
+    lower[Math.floor(Math.random() * lower.length)] +
+    numbers[Math.floor(Math.random() * numbers.length)] +
+    symbols[Math.floor(Math.random() * symbols.length)]
+
+  while (password.length < 12) {
+    password += all[Math.floor(Math.random() * all.length)]
+  }
+
+  return password
+    .split("")
+    .sort(() => Math.random() - 0.5)
+    .join("")
+}
+
+function initialClientForm(
+  plans: Plan[],
+): NewClientForm {
+  const preferred =
+    plans.find(
+      (plan) =>
+        plan.code === "smartpdv-mensal" &&
+        plan.active,
+    ) ||
+    plans.find((plan) => plan.active) ||
+    plans[0]
+
+  return {
+    companyName: "",
+    taxId: "",
+    phone: "",
+    commercialEmail: "",
+    adminName: "",
+    adminEmail: "",
+    adminPassword: "",
+    planId: preferred?.id || "",
+    status: "active",
+    dueDate: defaultDueDate(),
+    displayName: "",
+    primaryColor: "#C90D23",
+    secondaryColor: "#17181D",
+    accentColor: "#E21B36",
+    sidebarColor: "#15161A",
+  }
+}
+
 export default function PlatformAdmin() {
   const [plans, setPlans] = useState<Plan[]>([])
   const [organizations, setOrganizations] =
     useState<Organization[]>([])
   const [subscriptions, setSubscriptions] =
     useState<Subscription[]>([])
-  const [loading, setLoading] =
-    useState(true)
-  const [saving, setSaving] =
-    useState("")
-  const [error, setError] =
-    useState("")
-  const [success, setSuccess] =
-    useState("")
+  const [businessProfiles, setBusinessProfiles] =
+    useState<BusinessProfile[]>([])
+
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState("")
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
+
+  const [showNewPlan, setShowNewPlan] =
+    useState(false)
+  const [showNewClient, setShowNewClient] =
+    useState(false)
 
   const [planName, setPlanName] =
-    useState("MoveAI SmartPDV")
+    useState("")
   const [planCode, setPlanCode] =
-    useState("smartpdv-mensal")
+    useState("")
   const [planPrice, setPlanPrice] =
     useState("249.90")
+
+  const [client, setClient] =
+    useState<NewClientForm>(
+      initialClientForm([]),
+    )
 
   const load = useCallback(async () => {
     if (!supabase) return
@@ -96,6 +197,7 @@ export default function PlatformAdmin() {
       plansResult,
       orgsResult,
       subsResult,
+      businessResult,
     ] = await Promise.all([
       supabase
         .from("saas_plans")
@@ -114,20 +216,28 @@ export default function PlatformAdmin() {
         .select(
           "id,organization_id,plan_id,status,current_period_end",
         ),
+
+      supabase
+        .from("organization_business_profiles")
+        .select(
+          "organization_id,tax_id,phone,commercial_email",
+        ),
     ])
 
     const firstError =
       plansResult.error ||
       orgsResult.error ||
-      subsResult.error
+      subsResult.error ||
+      businessResult.error
 
     if (firstError) {
       setError(firstError.message)
     }
 
-    setPlans(
-      (plansResult.data || []) as Plan[],
-    )
+    const loadedPlans =
+      (plansResult.data || []) as Plan[]
+
+    setPlans(loadedPlans)
     setOrganizations(
       (orgsResult.data ||
         []) as Organization[],
@@ -136,6 +246,16 @@ export default function PlatformAdmin() {
       (subsResult.data ||
         []) as Subscription[],
     )
+    setBusinessProfiles(
+      (businessResult.data ||
+        []) as BusinessProfile[],
+    )
+
+    setClient((current) => {
+      if (current.planId) return current
+      return initialClientForm(loadedPlans)
+    })
+
     setLoading(false)
   }, [])
 
@@ -176,6 +296,128 @@ export default function PlatformAdmin() {
       }, 0)
   }, [plans, subscriptions])
 
+  function updateClient(
+    patch: Partial<NewClientForm>,
+  ) {
+    setClient((current) => ({
+      ...current,
+      ...patch,
+    }))
+  }
+
+  async function createClient(
+    event: FormEvent,
+  ) {
+    event.preventDefault()
+
+    if (!supabase) return
+
+    if (!client.companyName.trim()) {
+      setError("Informe o nome da empresa.")
+      return
+    }
+
+    if (!client.adminName.trim()) {
+      setError(
+        "Informe o nome do administrador.",
+      )
+      return
+    }
+
+    if (!client.adminEmail.trim()) {
+      setError(
+        "Informe o e-mail do administrador.",
+      )
+      return
+    }
+
+    if (
+      !client.adminPassword ||
+      client.adminPassword.length < 8
+    ) {
+      setError(
+        "A senha inicial deve ter pelo menos 8 caracteres.",
+      )
+      return
+    }
+
+    if (!client.planId) {
+      setError("Selecione um plano.")
+      return
+    }
+
+    setSaving("client")
+    setError("")
+    setSuccess("")
+
+    const { data, error: invokeError } =
+      await supabase.functions.invoke(
+        "platform-create-client",
+        {
+          body: {
+            company_name:
+              client.companyName.trim(),
+            tax_id:
+              client.taxId.trim() || null,
+            phone:
+              client.phone.trim() || null,
+            commercial_email:
+              client.commercialEmail.trim() ||
+              null,
+            admin_name:
+              client.adminName.trim(),
+            admin_email:
+              client.adminEmail
+                .trim()
+                .toLowerCase(),
+            admin_password:
+              client.adminPassword,
+            plan_id: client.planId,
+            status: client.status,
+            due_date:
+              client.dueDate || null,
+            branding: {
+              display_name:
+                client.displayName.trim() ||
+                client.companyName.trim(),
+              primary_color:
+                client.primaryColor,
+              secondary_color:
+                client.secondaryColor,
+              accent_color:
+                client.accentColor,
+              sidebar_color:
+                client.sidebarColor,
+            },
+          },
+        },
+      )
+
+    if (invokeError) {
+      setError(invokeError.message)
+      setSaving("")
+      return
+    }
+
+    if (data?.error) {
+      setError(data.error)
+      setSaving("")
+      return
+    }
+
+    setSuccess(
+      `Cliente ${client.companyName} criado com sucesso. O administrador já pode entrar com ${client.adminEmail}.`,
+    )
+
+    setClient(
+      initialClientForm(plans),
+    )
+    setShowNewClient(false)
+
+    await load()
+    setSaving("")
+  }
+
   async function createPlan(
     event: FormEvent,
   ) {
@@ -191,7 +433,7 @@ export default function PlatformAdmin() {
 
     if (!cleanName || !cleanCode) {
       setError(
-        "Informe nome e código do plano.",
+        "Informe nome e código do novo plano.",
       )
       return
     }
@@ -215,9 +457,23 @@ export default function PlatformAdmin() {
         })
 
     if (insertError) {
-      setError(insertError.message)
+      if (
+        insertError.message.includes(
+          "saas_plans_code_key",
+        )
+      ) {
+        setError(
+          "Já existe um plano com esse código. Use outro código.",
+        )
+      } else {
+        setError(insertError.message)
+      }
     } else {
-      setSuccess("Plano criado.")
+      setSuccess("Novo plano criado.")
+      setPlanName("")
+      setPlanCode("")
+      setPlanPrice("249.90")
+      setShowNewPlan(false)
       await load()
     }
 
@@ -261,6 +517,16 @@ export default function PlatformAdmin() {
     )
   }
 
+  function getBusinessProfile(
+    organizationId: string,
+  ) {
+    return businessProfiles.find(
+      (item) =>
+        item.organization_id ===
+        organizationId,
+    )
+  }
+
   async function saveSubscription(
     organizationId: string,
     planId: string,
@@ -281,6 +547,8 @@ export default function PlatformAdmin() {
     const current =
       getSubscription(organizationId)
 
+    const now = new Date().toISOString()
+
     const payload = {
       organization_id: organizationId,
       plan_id: planId,
@@ -288,10 +556,10 @@ export default function PlatformAdmin() {
       started_at:
         current?.status === "active"
           ? undefined
-          : new Date().toISOString(),
+          : now,
       current_period_start:
         status === "active"
-          ? new Date().toISOString()
+          ? now
           : undefined,
       current_period_end:
         periodEnd
@@ -301,10 +569,9 @@ export default function PlatformAdmin() {
           : null,
       canceled_at:
         status === "canceled"
-          ? new Date().toISOString()
+          ? now
           : null,
-      updated_at:
-        new Date().toISOString(),
+      updated_at: now,
     }
 
     const { error: saveError } =
@@ -336,7 +603,7 @@ export default function PlatformAdmin() {
     <>
       <PageHeader
         title="Plataforma SaaS"
-        description="Gerencie planos, clientes, mensalidades e acesso das empresas."
+        description="Cadastre clientes, gerencie planos, mensalidades e acesso das empresas."
       />
 
       <ErrorBanner message={error} />
@@ -352,6 +619,41 @@ export default function PlatformAdmin() {
           <strong>{success}</strong>
         </div>
       )}
+
+      <div
+        style={{
+          display: "flex",
+          gap: 10,
+          justifyContent: "flex-end",
+          flexWrap: "wrap",
+          marginBottom: 16,
+        }}
+      >
+        <button
+          className="ghost"
+          type="button"
+          onClick={() => void load()}
+        >
+          <RefreshCcw size={16} />
+          Atualizar
+        </button>
+
+        <button
+          className="primary"
+          type="button"
+          onClick={() => {
+            setError("")
+            setSuccess("")
+            setClient(
+              initialClientForm(plans),
+            )
+            setShowNewClient(true)
+          }}
+        >
+          <UserPlus size={16} />
+          Novo cliente
+        </button>
+      </div>
 
       <div className="stats-grid">
         <StatCard
@@ -381,83 +683,527 @@ export default function PlatformAdmin() {
         />
       </div>
 
+      {showNewClient && (
+        <div
+          className="panel"
+          style={{
+            marginTop: 16,
+            border:
+              "1px solid rgba(201,13,35,.25)",
+          }}
+        >
+          <div
+            className="panel-head"
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 12,
+              alignItems: "flex-start",
+            }}
+          >
+            <div>
+              <h3>Novo cliente</h3>
+              <p>
+                Crie a empresa, o administrador
+                principal e a assinatura em uma única etapa.
+              </p>
+            </div>
+
+            <button
+              className="ghost"
+              type="button"
+              aria-label="Fechar"
+              onClick={() =>
+                setShowNewClient(false)
+              }
+            >
+              <X size={17} />
+            </button>
+          </div>
+
+          <form onSubmit={createClient}>
+            <h4>Empresa</h4>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "repeat(auto-fit, minmax(220px, 1fr))",
+                gap: 12,
+              }}
+            >
+              <Field label="Nome da empresa">
+                <input
+                  value={client.companyName}
+                  onChange={(event) =>
+                    updateClient({
+                      companyName:
+                        event.target.value,
+                    })
+                  }
+                  required
+                />
+              </Field>
+
+              <Field label="CNPJ / CPF">
+                <input
+                  value={client.taxId}
+                  onChange={(event) =>
+                    updateClient({
+                      taxId:
+                        event.target.value,
+                    })
+                  }
+                  placeholder="Opcional"
+                />
+              </Field>
+
+              <Field label="Telefone">
+                <input
+                  value={client.phone}
+                  onChange={(event) =>
+                    updateClient({
+                      phone:
+                        event.target.value,
+                    })
+                  }
+                  placeholder="(00) 00000-0000"
+                />
+              </Field>
+
+              <Field label="E-mail comercial">
+                <input
+                  type="email"
+                  value={
+                    client.commercialEmail
+                  }
+                  onChange={(event) =>
+                    updateClient({
+                      commercialEmail:
+                        event.target.value,
+                    })
+                  }
+                  placeholder="financeiro@empresa.com"
+                />
+              </Field>
+            </div>
+
+            <h4
+              style={{ marginTop: 22 }}
+            >
+              Administrador principal
+            </h4>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "repeat(auto-fit, minmax(220px, 1fr))",
+                gap: 12,
+              }}
+            >
+              <Field label="Nome">
+                <input
+                  value={client.adminName}
+                  onChange={(event) =>
+                    updateClient({
+                      adminName:
+                        event.target.value,
+                    })
+                  }
+                  required
+                />
+              </Field>
+
+              <Field label="E-mail de acesso">
+                <input
+                  type="email"
+                  value={client.adminEmail}
+                  onChange={(event) =>
+                    updateClient({
+                      adminEmail:
+                        event.target.value,
+                    })
+                  }
+                  required
+                />
+              </Field>
+
+              <Field
+                label="Senha inicial"
+                hint="Mínimo de 8 caracteres. O cliente poderá alterar depois."
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 8,
+                  }}
+                >
+                  <input
+                    type="text"
+                    value={
+                      client.adminPassword
+                    }
+                    onChange={(event) =>
+                      updateClient({
+                        adminPassword:
+                          event.target.value,
+                      })
+                    }
+                    required
+                    minLength={8}
+                  />
+
+                  <button
+                    className="ghost"
+                    type="button"
+                    onClick={() =>
+                      updateClient({
+                        adminPassword:
+                          generatePassword(),
+                      })
+                    }
+                  >
+                    Gerar senha
+                  </button>
+                </div>
+              </Field>
+            </div>
+
+            <h4
+              style={{ marginTop: 22 }}
+            >
+              Assinatura
+            </h4>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "repeat(auto-fit, minmax(220px, 1fr))",
+                gap: 12,
+              }}
+            >
+              <Field label="Plano">
+                <select
+                  value={client.planId}
+                  onChange={(event) =>
+                    updateClient({
+                      planId:
+                        event.target.value,
+                    })
+                  }
+                  required
+                >
+                  <option value="">
+                    Selecione
+                  </option>
+
+                  {plans
+                    .filter(
+                      (plan) => plan.active,
+                    )
+                    .map((plan) => (
+                      <option
+                        key={plan.id}
+                        value={plan.id}
+                      >
+                        {plan.name} —{" "}
+                        {money(
+                          plan.monthly_price,
+                        )}{" "}
+                        / mês
+                      </option>
+                    ))}
+                </select>
+              </Field>
+
+              <Field label="Status inicial">
+                <select
+                  value={client.status}
+                  onChange={(event) =>
+                    updateClient({
+                      status:
+                        event.target.value,
+                    })
+                  }
+                >
+                  {statuses.map(
+                    ([value, label]) => (
+                      <option
+                        key={value}
+                        value={value}
+                      >
+                        {label}
+                      </option>
+                    ),
+                  )}
+                </select>
+              </Field>
+
+              <Field label="Próximo vencimento">
+                <input
+                  type="date"
+                  value={client.dueDate}
+                  onChange={(event) =>
+                    updateClient({
+                      dueDate:
+                        event.target.value,
+                    })
+                  }
+                />
+              </Field>
+            </div>
+
+            <h4
+              style={{ marginTop: 22 }}
+            >
+              Personalização inicial
+            </h4>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "repeat(auto-fit, minmax(180px, 1fr))",
+                gap: 12,
+              }}
+            >
+              <Field
+                label="Nome exibido"
+                hint="O cliente poderá trocar depois."
+              >
+                <input
+                  value={client.displayName}
+                  onChange={(event) =>
+                    updateClient({
+                      displayName:
+                        event.target.value,
+                    })
+                  }
+                  placeholder={
+                    client.companyName ||
+                    "Nome da marca"
+                  }
+                />
+              </Field>
+
+              <Field label="Cor principal">
+                <input
+                  type="color"
+                  value={
+                    client.primaryColor
+                  }
+                  onChange={(event) =>
+                    updateClient({
+                      primaryColor:
+                        event.target.value,
+                    })
+                  }
+                />
+              </Field>
+
+              <Field label="Cor secundária">
+                <input
+                  type="color"
+                  value={
+                    client.secondaryColor
+                  }
+                  onChange={(event) =>
+                    updateClient({
+                      secondaryColor:
+                        event.target.value,
+                    })
+                  }
+                />
+              </Field>
+
+              <Field label="Cor de destaque">
+                <input
+                  type="color"
+                  value={
+                    client.accentColor
+                  }
+                  onChange={(event) =>
+                    updateClient({
+                      accentColor:
+                        event.target.value,
+                    })
+                  }
+                />
+              </Field>
+
+              <Field label="Cor do menu lateral">
+                <input
+                  type="color"
+                  value={
+                    client.sidebarColor
+                  }
+                  onChange={(event) =>
+                    updateClient({
+                      sidebarColor:
+                        event.target.value,
+                    })
+                  }
+                />
+              </Field>
+            </div>
+
+            <p
+              style={{
+                marginTop: 14,
+                opacity: 0.7,
+              }}
+            >
+              Logotipo e banner poderão ser
+              enviados pelo administrador do
+              cliente em Configurações assim que
+              ele acessar o sistema.
+            </p>
+
+            <FormActions>
+              <button
+                className="ghost"
+                type="button"
+                onClick={() =>
+                  setShowNewClient(false)
+                }
+              >
+                Cancelar
+              </button>
+
+              <button
+                className="primary"
+                type="submit"
+                disabled={
+                  saving === "client"
+                }
+              >
+                <Building2 size={16} />
+                {saving === "client"
+                  ? "Criando cliente..."
+                  : "Criar cliente"}
+              </button>
+            </FormActions>
+          </form>
+        </div>
+      )}
+
       <div
         style={{
           display: "grid",
           gridTemplateColumns:
-            "minmax(300px, 0.8fr) minmax(0, 2fr)",
+            "minmax(280px, .75fr) minmax(0, 2fr)",
           gap: 16,
           marginTop: 16,
           alignItems: "start",
         }}
       >
         <div className="panel">
-          <div className="panel-head">
-            <h3>Novo plano</h3>
-            <p>
-              Crie outros planos além do
-              MoveAI SmartPDV mensal.
-            </p>
+          <div
+            className="panel-head"
+            style={{
+              display: "flex",
+              justifyContent:
+                "space-between",
+              gap: 10,
+              alignItems: "center",
+            }}
+          >
+            <div>
+              <h3>Planos</h3>
+              <p>
+                Planos disponíveis para
+                os clientes.
+              </p>
+            </div>
+
+            <button
+              className="ghost"
+              type="button"
+              onClick={() =>
+                setShowNewPlan(
+                  (value) => !value,
+                )
+              }
+            >
+              <Plus size={16} />
+              Novo plano
+            </button>
           </div>
 
-          <form onSubmit={createPlan}>
-            <Field label="Nome">
-              <input
-                value={planName}
-                onChange={(event) =>
-                  setPlanName(
-                    event.target.value,
-                  )
-                }
-                required
-              />
-            </Field>
+          {showNewPlan && (
+            <form
+              onSubmit={createPlan}
+              style={{
+                marginBottom: 18,
+                paddingBottom: 18,
+                borderBottom:
+                  "1px solid rgba(0,0,0,.08)",
+              }}
+            >
+              <Field label="Nome">
+                <input
+                  value={planName}
+                  onChange={(event) =>
+                    setPlanName(
+                      event.target.value,
+                    )
+                  }
+                  placeholder="Ex.: Plano Premium"
+                  required
+                />
+              </Field>
 
-            <Field label="Código">
-              <input
-                value={planCode}
-                onChange={(event) =>
-                  setPlanCode(
-                    event.target.value,
-                  )
-                }
-                required
-              />
-            </Field>
-
-            <Field label="Mensalidade">
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={planPrice}
-                onChange={(event) =>
-                  setPlanPrice(
-                    event.target.value,
-                  )
-                }
-                required
-              />
-            </Field>
-
-            <FormActions>
-              <button
-                className="primary"
-                type="submit"
-                disabled={
-                  saving === "plan"
-                }
+              <Field
+                label="Código"
+                hint="Use um código único."
               >
-                {saving === "plan"
-                  ? "Criando..."
-                  : "Criar plano"}
-              </button>
-            </FormActions>
-          </form>
+                <input
+                  value={planCode}
+                  onChange={(event) =>
+                    setPlanCode(
+                      event.target.value,
+                    )
+                  }
+                  placeholder="premium-mensal"
+                  required
+                />
+              </Field>
+
+              <Field label="Mensalidade">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={planPrice}
+                  onChange={(event) =>
+                    setPlanPrice(
+                      event.target.value,
+                    )
+                  }
+                  required
+                />
+              </Field>
+
+              <FormActions>
+                <button
+                  className="primary"
+                  type="submit"
+                  disabled={
+                    saving === "plan"
+                  }
+                >
+                  {saving === "plan"
+                    ? "Criando..."
+                    : "Criar plano"}
+                </button>
+              </FormActions>
+            </form>
+          )}
 
           <div
             style={{
-              marginTop: 18,
               display: "grid",
               gap: 8,
             }}
@@ -475,12 +1221,14 @@ export default function PlatformAdmin() {
                 <strong>
                   {plan.name}
                 </strong>
+
                 <div>
                   {money(
                     plan.monthly_price,
                   )}{" "}
                   / mês
                 </div>
+
                 <small>
                   {plan.code}
                 </small>
@@ -513,7 +1261,9 @@ export default function PlatformAdmin() {
 
         <div className="panel">
           <div className="panel-head">
-            <h3>Clientes e assinaturas</h3>
+            <h3>
+              Clientes e assinaturas
+            </h3>
             <p>
               Ative, suspenda ou altere
               o plano de cada empresa.
@@ -529,6 +1279,7 @@ export default function PlatformAdmin() {
               <thead>
                 <tr>
                   <th>Empresa</th>
+                  <th>Contato</th>
                   <th>Plano</th>
                   <th>Status</th>
                   <th>Vencimento</th>
@@ -541,6 +1292,11 @@ export default function PlatformAdmin() {
                   <SubscriptionRow
                     key={org.id}
                     organization={org}
+                    businessProfile={
+                      getBusinessProfile(
+                        org.id,
+                      )
+                    }
                     subscription={
                       getSubscription(
                         org.id,
@@ -567,12 +1323,14 @@ export default function PlatformAdmin() {
 
 function SubscriptionRow({
   organization,
+  businessProfile,
   subscription,
   plans,
   saving,
   onSave,
 }: {
   organization: Organization
+  businessProfile?: BusinessProfile
   subscription?: Subscription
   plans: Plan[]
   saving: boolean
@@ -609,10 +1367,12 @@ function SubscriptionRow({
         plans[0]?.id ||
         "",
     )
+
     setStatus(
       subscription?.status ||
         "pending",
     )
+
     setPeriodEnd(
       toDateInput(
         subscription?.current_period_end,
@@ -626,6 +1386,25 @@ function SubscriptionRow({
         <strong>
           {organization.name}
         </strong>
+
+        {businessProfile?.tax_id && (
+          <div>
+            <small>
+              {businessProfile.tax_id}
+            </small>
+          </div>
+        )}
+      </td>
+
+      <td>
+        <div>
+          {businessProfile?.commercial_email ||
+            "-"}
+        </div>
+        <small>
+          {businessProfile?.phone ||
+            ""}
+        </small>
       </td>
 
       <td>
