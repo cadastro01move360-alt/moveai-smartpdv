@@ -9,7 +9,7 @@ import { RequireAuth } from "./components/RequireAuth"
 import { RequirePermission } from "./components/RequirePermission"
 import Dashboard from "./pages/Dashboard"
 import Login from "./pages/Login"
-import ModulePage from "./pages/ModulePage"
+import Orders from "./pages/Orders"
 import PDV from "./pages/PDV"
 import Ingredients from "./pages/Ingredients"
 import Suppliers from "./pages/Suppliers"
@@ -139,11 +139,7 @@ export default function App() {
           path="/encomendas"
           element={
             <Protected path="/encomendas">
-              <ModulePage
-                title="Encomendas"
-                description="Organize pedidos futuros, sinais, saldo e entrega."
-                cta="Nova encomenda"
-              />
+              <Orders />
             </Protected>
           }
         />
