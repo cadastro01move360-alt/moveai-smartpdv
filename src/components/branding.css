@@ -1,0 +1,155 @@
+:root {
+  --brand-primary: #C90D23;
+  --brand-secondary: #17181D;
+  --brand-accent: #E21B36;
+  --brand-sidebar: #15161A;
+  --brand-banner-image: none;
+}
+
+.sidebar {
+  background: var(--brand-sidebar) !important;
+}
+
+.nav-item.active {
+  color: var(--brand-primary) !important;
+  border-left-color: var(--brand-primary) !important;
+}
+
+.eyebrow {
+  color: var(--brand-primary) !important;
+}
+
+button.primary,
+a.primary,
+.primary {
+  background: var(--brand-primary) !important;
+  border-color: var(--brand-primary) !important;
+}
+
+.brand-hero {
+  background-color: var(--brand-secondary) !important;
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(13, 14, 18, 0.94),
+      rgba(13, 14, 18, 0.70)
+    ),
+    var(--brand-banner-image) !important;
+  background-size: cover !important;
+  background-position: center !important;
+}
+
+.brand-hero .hero-kicker {
+  color: var(--brand-accent) !important;
+}
+
+.sidebar-logo {
+  object-fit: contain;
+  max-height: 56px;
+}
+
+.branding-preview {
+  border-radius: 16px;
+  min-height: 150px;
+  padding: 22px;
+  display: flex;
+  align-items: flex-end;
+  background-color: var(--brand-secondary);
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.branding-preview::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, .78),
+    rgba(0, 0, 0, .28)
+  );
+}
+
+.branding-preview-content {
+  position: relative;
+  z-index: 1;
+  color: white;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.branding-preview-logo {
+  width: 86px;
+  height: 58px;
+  border-radius: 10px;
+  object-fit: contain;
+  background: rgba(255,255,255,.95);
+  padding: 7px;
+}
+
+.saas-status {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(0,0,0,.06);
+}
+
+.saas-status.active,
+.saas-status.trialing {
+  color: #137333;
+  background: #e7f6ec;
+}
+
+.saas-status.pending,
+.saas-status.past_due {
+  color: #8a5a00;
+  background: #fff5da;
+}
+
+.saas-status.suspended,
+.saas-status.canceled {
+  color: #9a1b1b;
+  background: #fdeaea;
+}
+
+.subscription-blocked {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(201,13,35,.18), transparent 30%),
+    #111318;
+}
+
+.subscription-blocked-card {
+  width: min(560px, 100%);
+  background: white;
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 24px 80px rgba(0,0,0,.32);
+}
+
+.platform-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.platform-table th,
+.platform-table td {
+  padding: 10px;
+  border-bottom: 1px solid rgba(0,0,0,.08);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.platform-table th {
+  font-size: 12px;
+  opacity: .66;
+}

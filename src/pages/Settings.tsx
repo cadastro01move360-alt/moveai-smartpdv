@@ -9,6 +9,8 @@ import {
   OrganizationSetup,
 } from "../components/OperationalUI"
 import { PageHeader } from "../components/UI"
+import { BrandingSettings } from "../components/BrandingSettings"
+import { Link } from "react-router-dom"
 
 const roleNames: Record<string, string> = {
   administrador: "Administrador",
@@ -382,6 +384,46 @@ export default function Settings() {
               </button>
             </FormActions>
           </form>
+        </div>
+
+        <BrandingSettings
+          organizationId={org.organization.id}
+          isAdmin={isAdmin}
+        />
+
+        <div className="panel">
+          <div className="panel-head">
+            <h3>Usuários e setores</h3>
+            <p>
+              Defina responsáveis e perfis administrativos por setor.
+            </p>
+          </div>
+
+          <p>
+            Os perfis atuais são Administrador, Financeiro,
+            Produção e Atendimento / Caixa.
+          </p>
+
+          <FormActions>
+            <Link className="primary" to="/usuarios">
+              Gerenciar usuários
+            </Link>
+          </FormActions>
+        </div>
+
+        <div className="panel">
+          <div className="panel-head">
+            <h3>Assinatura</h3>
+            <p>
+              Consulte plano, valor mensal, status e vencimento.
+            </p>
+          </div>
+
+          <FormActions>
+            <Link className="primary" to="/assinatura">
+              Ver assinatura
+            </Link>
+          </FormActions>
         </div>
 
         <div className="panel">

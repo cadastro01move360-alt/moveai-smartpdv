@@ -7,6 +7,8 @@ import {
 import { AppShell } from "./components/AppShell"
 import { RequireAuth } from "./components/RequireAuth"
 import { RequirePermission } from "./components/RequirePermission"
+import { RequirePlatformAdmin } from "./components/RequirePlatformAdmin"
+import { SubscriptionGate } from "./components/SubscriptionGate"
 import Dashboard from "./pages/Dashboard"
 import Login from "./pages/Login"
 import Orders from "./pages/Orders"
@@ -24,6 +26,8 @@ import Cash from "./pages/Cash"
 import Banks from "./pages/Banks"
 import Users from "./pages/Users"
 import Settings from "./pages/Settings"
+import Subscription from "./pages/Subscription"
+import PlatformAdmin from "./pages/PlatformAdmin"
 
 function Protected({
   path,
@@ -50,7 +54,9 @@ export default function App() {
       <Route
         element={
           <RequireAuth>
-            <AppShell />
+            <SubscriptionGate>
+              <AppShell />
+            </SubscriptionGate>
           </RequireAuth>
         }
       >
@@ -195,6 +201,25 @@ export default function App() {
             <Protected path="/configuracoes">
               <Settings />
             </Protected>
+          }
+        />
+
+
+        <Route
+          path="/assinatura"
+          element={
+            <Protected path="/assinatura">
+              <Subscription />
+            </Protected>
+          }
+        />
+
+        <Route
+          path="/plataforma"
+          element={
+            <RequirePlatformAdmin>
+              <PlatformAdmin />
+            </RequirePlatformAdmin>
           }
         />
       </Route>
