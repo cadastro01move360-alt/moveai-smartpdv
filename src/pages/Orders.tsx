@@ -35,7 +35,7 @@ type Encomenda = {
   id: string
   customer_name: string | null
   customer_phone: string | null
-  fulfillment_type: "retirada" | "entrega"
+  fulfillment_type: "retirada" | "entrega" | "balcao"
   scheduled_for: string | null
   delivery_address: string | null
   notes: string | null
@@ -82,7 +82,7 @@ export default function Orders() {
   const [customerName, setCustomerName] = useState("")
   const [customerPhone, setCustomerPhone] = useState("")
   const [fulfillmentType, setFulfillmentType] =
-    useState<"retirada" | "entrega">("retirada")
+    useState<"retirada" | "entrega" | "balcao">("retirada")
   const [scheduledFor, setScheduledFor] = useState("")
   const [deliveryAddress, setDeliveryAddress] = useState("")
   const [notes, setNotes] = useState("")
@@ -468,10 +468,11 @@ export default function Orders() {
                 <input value={customerPhone} onChange={(event) => setCustomerPhone(event.target.value)} placeholder="(00) 00000-0000" />
               </Field>
 
-              <Field label="Retirada ou entrega">
-                <select value={fulfillmentType} onChange={(event) => setFulfillmentType(event.target.value as "retirada" | "entrega")}>
+              <Field label="Forma de atendimento">
+                <select value={fulfillmentType} onChange={(event) => setFulfillmentType(event.target.value as "retirada" | "entrega" | "balcao")}>
                   <option value="retirada">Retirada</option>
                   <option value="entrega">Entrega</option>
+                  <option value="balcao">Balcão / Produzir</option>
                 </select>
               </Field>
 
@@ -627,7 +628,11 @@ export default function Orders() {
                   <div>
                     <small>Tipo</small>
                     <br />
-                    <strong>{order.fulfillment_type === "entrega" ? "Entrega" : "Retirada"}</strong>
+                    <strong>{order.fulfillment_type === "entrega"
+                      ? "Entrega"
+                      : order.fulfillment_type === "balcao"
+                        ? "Balcão / Produzir"
+                        : "Retirada"}</strong>
                   </div>
 
                   <div>
